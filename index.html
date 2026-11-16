@@ -1,0 +1,705 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tablero de equipo y medicación</title>
+<style>
+:root{--bg:#f5f5f5;--card:#fff;--sub:#fafafa;--tx:#242424;--mut:#616161;--line:#e0e0e0;--stroke:#d1d1d1;--acc:#0f6cbd;--btn:#0f6cbd;--btnh:#115ea3;--acc2:#ebf3fc;--bar:#0f6cbd;--ok:#107c10;--warn:#bc4b09;--bad:#c50f1f;--on:#fff;--hover:#f0f0f0;
+ --sh2:0 0 2px rgba(0,0,0,.12),0 1px 2px rgba(0,0,0,.14);--sh4:0 0 2px rgba(0,0,0,.12),0 2px 4px rgba(0,0,0,.14);--sh28:0 0 8px rgba(0,0,0,.12),0 14px 28px rgba(0,0,0,.24)}
+@media (prefers-color-scheme:dark){:root{--bg:#1f1f1f;--card:#292929;--sub:#242424;--tx:#fff;--mut:#adadad;--line:#3d3d3d;--stroke:#616161;--acc:#479ef5;--btn:#115ea3;--btnh:#0f6cbd;--acc2:#082338;--bar:#0c3b5e;--ok:#54b054;--warn:#faa06b;--bad:#f1707b;--hover:#333;
+ --sh2:0 0 2px rgba(0,0,0,.24),0 1px 2px rgba(0,0,0,.28);--sh4:0 0 2px rgba(0,0,0,.24),0 2px 4px rgba(0,0,0,.28);--sh28:0 0 8px rgba(0,0,0,.24),0 14px 28px rgba(0,0,0,.48)}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:14px/20px "Segoe UI Variable Text","Segoe UI Variable","Segoe UI",-apple-system,BlinkMacSystemFont,Roboto,"Helvetica Neue",sans-serif;-webkit-font-smoothing:antialiased}
+header{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between;padding:10px 16px;background:var(--bar);color:#fff}
+header h1{font-size:16px;line-height:22px;font-weight:600;margin:0}
+
+header small{color:rgba(255,255,255,.85);display:block;font-weight:400;font-size:12px;line-height:16px}
+header button,header button.pel{background:transparent;border-color:rgba(255,255,255,.55);color:#fff}
+header button:hover,header button.pel:hover{background:rgba(255,255,255,.16);border-color:#fff}
+nav{display:flex;gap:4px;overflow-x:auto;padding:0 12px;background:var(--card);box-shadow:var(--sh2);position:sticky;top:0;z-index:5}
+nav button{border:0;background:none;color:var(--mut);padding:12px 12px;border-radius:0;white-space:nowrap;font-weight:400;min-height:44px;position:relative}
+nav button:hover{background:none;color:var(--tx)}
+nav button:hover::after,nav button.on::after{content:"";position:absolute;left:12px;right:12px;bottom:0;height:3px;border-radius:3px 3px 0 0;background:var(--stroke)}
+nav button.on{color:var(--tx);font-weight:600}
+nav button.on::after{background:var(--acc)}
+main{max-width:1200px;margin:0 auto;padding:20px 16px 40px}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:1px solid var(--stroke);background:var(--card);border-radius:4px;padding:5px 12px;min-height:32px;font-weight:600;transition:background .1s,border-color .1s}
+button:hover{background:var(--hover)}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
+button.pri{background:var(--btn);border-color:var(--btn);color:var(--on)}
+button.pri:hover{background:var(--btnh);border-color:var(--btnh)}
+button.min{padding:1px 8px;min-height:24px;font-size:12px;font-weight:400}
+button.pel{color:var(--bad)}
+input,select,textarea{border:1px solid var(--stroke);border-bottom-color:var(--mut);background:var(--card);border-radius:4px;padding:5px 8px;min-height:32px;max-width:100%}
+input:focus,select:focus,textarea:focus{outline:none;border-bottom:2px solid var(--acc);padding-bottom:4px}
+input[type=checkbox]{min-height:0;width:16px;height:16px;accent-color:var(--btn)}
+.card{background:var(--card);border-radius:8px;padding:16px 20px;margin-bottom:16px;box-shadow:var(--sh2)}
+.card h2{font-size:16px;line-height:22px;font-weight:600;margin:0}
+.sh{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:center;margin-bottom:10px}
+.mut{color:var(--mut);font-size:12px;line-height:16px;margin:4px 0 10px}
+.aviso{background:var(--acc2);border:1px solid color-mix(in srgb,var(--acc) 35%,transparent);border-radius:4px;padding:10px 14px;margin-bottom:16px}
+.filtros{display:flex;flex-wrap:wrap;gap:12px;align-items:end}
+.filtros label{display:flex;flex-direction:column;font-size:12px;line-height:16px;color:var(--mut);gap:4px}
+.filtros label input,.filtros label select{font-size:14px;color:var(--tx)}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-bottom:16px}
+.tile{background:var(--card);border-radius:8px;padding:14px 16px;box-shadow:var(--sh2);transition:box-shadow .15s}
+.tile:hover{box-shadow:var(--sh4)}
+.tile b{display:block;font-size:32px;line-height:40px;font-weight:600;margin:4px 0 0}
+.tile span{font-size:14px;font-weight:600}
+.tile small{display:block;color:var(--mut);font-size:12px;line-height:16px}
+.tile em{display:block;font-style:normal;font-size:12px;line-height:16px;color:var(--mut);border-top:1px solid var(--line);margin-top:10px;padding-top:8px}
+.dos{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap;font-variant-numeric:tabular-nums}
+th{font-size:12px;color:var(--mut);font-weight:600}
+tbody tr:hover{background:var(--sub)}
+td.wrap{white-space:normal;min-width:180px}
+td.acc{text-align:right}
+svg{width:100%;height:auto;display:block}
+.sv{font-size:11px;fill:var(--tx)}.sl{font-size:10px;fill:var(--mut)}
+.h{border:1px solid var(--line);border-left:4px solid var(--stroke);padding:10px 14px;margin:8px 0;background:var(--sub);border-radius:4px}
+.h.alta{border-left-color:var(--bad)}.h.media{border-left-color:var(--warn)}.h.baja{border-left-color:var(--acc)}
+.h strong{display:block;font-weight:600}.h p{margin:4px 0}
+.tag{display:inline-block;font-size:11px;line-height:16px;font-weight:600;margin-right:8px;padding:0 6px;border-radius:4px;border:1px solid currentColor;vertical-align:1px}
+.tag.alta{color:var(--bad)}.tag.media{color:var(--warn)}.tag.baja{color:var(--acc)}
+.ok{color:var(--ok)}.bad{color:var(--bad)}.warn{color:var(--warn)}
+dialog{border:0;border-radius:8px;background:var(--card);color:var(--tx);padding:24px;width:min(520px,calc(100vw - 32px));max-height:90vh;overflow:auto;box-shadow:var(--sh28)}
+dialog::backdrop{background:rgba(0,0,0,.4)}
+dialog h2{margin:0 0 16px;font-size:20px;line-height:26px;font-weight:600}
+dialog label{display:block;font-size:14px;margin-bottom:12px}
+dialog label input:not([type=checkbox]),dialog label select,dialog label textarea{display:block;width:100%;margin-top:4px}
+dialog label.chk{display:flex;gap:8px;align-items:center}
+.acc2{display:flex;justify-content:flex-end;gap:8px;margin-top:20px}
+#faj label{font-size:14px}#faj input{margin-top:4px}
+textarea.pr{width:100%;min-height:260px;font:13px/1.45 "Cascadia Code",Consolas,ui-monospace,Menlo,monospace}
+/* Gráficos y resumen gerencial */
+:root{--s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a;--track:#cde2fb;--good:#0ca30c;--warnc:#fab219;--crit:#d03b3b;--grid:#e6e6e6;--axis:#c7c7c7}
+@media (prefers-color-scheme:dark){:root{--s1:#3987e5;--s2:#d95926;--s3:#199e70;--track:#104281;--grid:#383838;--axis:#525252}}
+.hero{display:grid;grid-template-columns:minmax(200px,250px) 1fr;gap:16px 32px;align-items:start}
+.hero .n{font-size:64px;line-height:72px;font-weight:600}
+.lbl{font-size:14px;font-weight:600;display:block}
+.res h3{font-size:14px;line-height:20px;margin:14px 0 4px;font-weight:600}
+.res h3:first-child{margin-top:0}
+.res p,.res li{margin:0 0 4px}
+.res ul{margin:0;padding-left:18px}
+.delta{font-size:12px;line-height:16px;display:block;margin-top:2px;color:var(--mut)}
+.delta.up{color:var(--ok)}.delta.down{color:var(--bad)}
+.st{display:inline-flex;align-items:center;gap:6px;font-size:12px;white-space:nowrap}
+.st i{width:16px;height:16px;border-radius:50%;display:inline-grid;place-items:center;font-style:normal;font-size:11px;line-height:1;font-weight:700;color:#fff;flex:none}
+.st{color:var(--tx)}.st.e-good i{background:var(--good)}.st.e-warn i{background:var(--warnc);color:#0b0b0b}.st.e-crit i{background:var(--crit)}.st.e-nd i{background:var(--axis)}
+.leg{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:12px;line-height:16px;color:var(--mut);margin:8px 0}
+.leg span{display:inline-flex;align-items:center;gap:6px}
+.leg i{width:10px;height:10px;border-radius:2px;flex:none}.leg i.ln{height:2px;width:14px;border-radius:1px}
+.hb{display:grid;gap:8px;margin-top:10px}
+.hbr{display:grid;grid-template-columns:minmax(120px,200px) 1fr auto;gap:4px 12px;align-items:center;border-radius:4px;padding:3px 6px;margin:0 -6px}
+.hbr:hover,.hbr:focus{background:var(--sub);outline:none}
+.hbr:focus-visible{outline:2px solid var(--acc)}
+.hbt{height:12px;position:relative}
+.hbt b{display:block;height:100%;background:var(--s1);border-radius:0 4px 4px 0}
+.hbt.m{background:var(--track);border-radius:6px}.hbt.m b{border-radius:6px}
+.hbt.m u{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--tx)}
+.hbv{font-size:13px;font-variant-numeric:tabular-nums;display:flex;gap:10px;align-items:center;justify-content:flex-end;color:var(--mut)}
+.hbv strong{font-weight:600;min-width:40px;text-align:right;color:var(--tx)}
+details.tv{margin-top:12px;font-size:12px}details.tv summary{cursor:pointer;color:var(--mut)}details.tv table{font-size:12px;margin-top:6px}
+#tip{position:fixed;z-index:20;pointer-events:none;background:var(--card);color:var(--tx);border:1px solid var(--line);border-radius:4px;box-shadow:var(--sh4);padding:8px 10px;font-size:12px;line-height:16px;max-width:260px;display:none}
+#tip .tt{color:var(--mut);margin-bottom:2px}#tip .tr{display:flex;gap:6px;align-items:center}#tip .tr i{width:10px;height:2px;border-radius:1px;flex:none}#tip .tr b{font-weight:600}
+svg .hit{outline:none}svg .hit rect{fill:transparent}
+svg .hit.col:hover rect,svg .hit.col:focus rect{fill:var(--tx);fill-opacity:.06}
+svg .cross{stroke:var(--mut);stroke-width:1;opacity:0}svg .hit:hover .cross,svg .hit:focus .cross{opacity:1}
+.gl{stroke:var(--grid);stroke-width:1}.bl{stroke:var(--axis);stroke-width:1}
+@media(max-width:700px){.hero{grid-template-columns:1fr}}
+@media(max-width:560px){.hbr{grid-template-columns:1fr auto}.hbn{grid-column:1/-1}}
+@media print{:root{--bg:#fff;--card:#fff;--sub:#fafafa;--tx:#242424;--mut:#616161;--line:#e0e0e0;--stroke:#d1d1d1;--acc:#0f6cbd;--acc2:#ebf3fc;--bar:#fff;--ok:#107c10;--warn:#bc4b09;--bad:#c50f1f;--s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a;--track:#cde2fb;--grid:#e6e6e6;--axis:#c7c7c7;--sh2:none;--sh4:none}
+ *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+ header{color:#242424;border-bottom:1px solid #e0e0e0}header small{color:#616161}
+ header div,nav,.noprint,.aviso,details.tv,#tip{display:none!important}
+ main{max-width:none;padding:12px 0}.card,.tile{border:1px solid #e0e0e0;break-inside:avoid}}
+</style>
+</head>
+<body>
+<header>
+  <h1><span id="org"></span><small>Tablero de equipo, recursos y medicación · los datos se guardan solo en este navegador</small></h1>
+  <div>
+    <button data-act="exportar">Exportar respaldo</button>
+    <button data-act="importar">Importar</button>
+    <button data-act="demo">Cargar datos de ejemplo</button>
+    <button class="pel" data-act="vaciar">Empezar en blanco</button>
+    <input type="file" id="arch" accept="application/json,.json" hidden>
+  </div>
+</header>
+<nav id="nav"></nav>
+<main id="vista"></main>
+<dialog id="dlg"></dialog>
+<div id="tip" role="tooltip"></div>
+<script>
+'use strict';
+/* ============ Utilidades ============ */
+const KEY='tablero-equipo-v1';
+const $=s=>document.querySelector(s);
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid=()=>(crypto.randomUUID?crypto.randomUUID():'r'+Date.now()+Math.random().toString(36).slice(2));
+const iso=d=>new Date(d.getTime()-d.getTimezoneOffset()*6e4).toISOString().slice(0,10);
+const HOY=iso(new Date());
+const D=s=>new Date(s+'T12:00:00');
+const addDias=(s,n)=>{const d=D(s);d.setDate(d.getDate()+n);return iso(d)};
+const difDias=(a,b)=>Math.round((D(b)-D(a))/864e5);
+const fmt=s=>s?s.split('-').reverse().join('/'):'—';
+const lunes=s=>addDias(s,-((D(s).getDay()+6)%7));
+const iniMes=s=>s.slice(0,8)+'01';
+const finMes=s=>{const d=D(iniMes(s));d.setMonth(d.getMonth()+1);d.setDate(0);return iso(d)};
+const pct=(n,d)=>d?Math.round(n/d*100):null;
+const verPct=p=>p===null?'—':p+'%';
+const num=v=>(+v||0).toLocaleString('es');
+
+/* ============ Modelo de datos ============ */
+const COLS=['integrantes','cursos','actividades','tareas','incidentes','horas','equipos','insumos','capital','pacientes','indicaciones','administraciones'];
+const TIPOS_EV=['Casi accidente','Primeros auxilios','Tratamiento médico','Con días perdidos','Daño material','Ambiental'],REG=['Tratamiento médico','Con días perdidos'];
+const METAS={acciones:90,tareas:90,seguimiento:90,calidad:90,capacitacion:95,equipos:90,adherencia:90};
+const A=()=>db.ajustes;
+const S={
+ integrantes:{titulo:'Integrantes',uno:'integrante',campos:[
+  {k:'codigo',l:'Código o alias (evitar nombre completo)',c:'Código',t:'text',req:1},
+  {k:'rol',l:'Rol',t:'select',o:()=>A().roles},{k:'turno',l:'Turno',t:'select',o:()=>A().turnos},
+  {k:'equipo',l:'Equipo / cuadrilla / base',c:'Equipo',t:'text'},{k:'activo',l:'Activo',t:'check',d:true}]},
+ cursos:{titulo:'Capacitaciones y habilitaciones',uno:'capacitación',campos:[
+  {k:'integrante',l:'Integrante',t:'ref',col:'integrantes',req:1},{k:'curso',l:'Curso o habilitación',c:'Curso',t:'text',req:1},
+  {k:'vence',l:'Vence',t:'date',req:1}]},
+ actividades:{titulo:'Actividades',uno:'actividad',campos:[
+  {k:'fecha',l:'Fecha',t:'date',req:1,d:HOY},{k:'tipo',l:'Tipo',t:'select',o:()=>A().tipos},
+  {k:'integrante',l:'Integrante',t:'ref',col:'integrantes',req:1},{k:'turno',l:'Turno',t:'select',o:()=>A().turnos},
+  {k:'reqSeg',l:'Requiere seguimiento',c:'Req. seguim.',t:'check'},{k:'segDoc',l:'Seguimiento documentado',c:'Seguim. doc.',t:'check'},
+  {k:'completo',l:'Registro completo',c:'Reg. completo',t:'check',d:true},{k:'nota',l:'Nota (sin datos personales)',c:'Nota',t:'text'}]},
+ tareas:{titulo:'Tareas',uno:'tarea',campos:[
+  {k:'titulo',l:'Tarea',t:'text',req:1},{k:'integrante',l:'Asignada a',t:'ref',col:'integrantes',req:1},
+  {k:'asignada',l:'Fecha de asignación',c:'Asignada',t:'date',d:HOY},{k:'vence',l:'Plazo',t:'date',req:1},
+  {k:'completada',l:'Fecha de finalización (vacío = pendiente)',c:'Completada',t:'date'}]},
+ equipos:{titulo:'Equipamiento',uno:'equipo',campos:[
+  {k:'nombre',l:'Equipo',t:'text',req:1},{k:'tipo',l:'Tipo',t:'text'},
+  {k:'estado',l:'Estado',t:'select',o:()=>['Operativo','En mantenimiento','Fuera de servicio']},
+  {k:'calibVence',l:'Vence calibración / mantenimiento',c:'Vence calibración',t:'date'},{k:'ubicacion',l:'Ubicación',t:'text'}]},
+ insumos:{titulo:'Insumos y medicamentos en stock',uno:'insumo',campos:[
+  {k:'nombre',l:'Insumo',t:'text',req:1},{k:'categoria',l:'Categoría',t:'text'},
+  {k:'stock',l:'Stock actual',c:'Stock',t:'num'},{k:'minimo',l:'Stock mínimo',c:'Mínimo',t:'num'},
+  {k:'unidad',l:'Unidad',t:'text'},{k:'vence',l:'Vencimiento',t:'date'}]},
+ capital:{titulo:'Capital y presupuesto',uno:'rubro',campos:[
+  {k:'rubro',l:'Rubro',t:'text',req:1},{k:'periodo',l:'Mes',t:'month',req:1,d:HOY.slice(0,7)},
+  {k:'presupuestado',l:'Presupuestado',t:'num'},{k:'ejecutado',l:'Ejecutado',t:'num'}]},
+ pacientes:{titulo:'Pacientes',uno:'paciente',campos:[
+  {k:'codigo',l:'Código (nunca nombre ni documento)',c:'Código',t:'text',req:1},{k:'sector',l:'Sector / base',c:'Sector',t:'text'},
+  {k:'alergias',l:'Alergias registradas (separadas por coma)',c:'Alergias',t:'text'},{k:'activo',l:'Activo',t:'check',d:true}]},
+ indicaciones:{titulo:'Indicaciones de medicación',uno:'indicación',campos:[
+  {k:'paciente',l:'Paciente',t:'ref',col:'pacientes',req:1},{k:'medicamento',l:'Medicamento',t:'text',req:1},
+  {k:'dosis',l:'Dosis (ej. 500 mg)',c:'Dosis',t:'text'},{k:'via',l:'Vía',t:'select',o:()=>['Oral','Intramuscular','Endovenosa','Subcutánea','Tópica','Inhalatoria','Otra']},
+  {k:'dosisDia',l:'Dosis por día (0 = a demanda)',c:'Dosis/día',t:'num',d:1},
+  {k:'inicio',l:'Inicio',t:'date',req:1,d:HOY},{k:'fin',l:'Fin (vacío = crónica)',c:'Fin',t:'date'},
+  {k:'prescriptor',l:'Prescriptor (código o matrícula)',c:'Prescriptor',t:'text'},{k:'controlado',l:'Medicamento controlado',c:'Controlado',t:'check'}]},
+ administraciones:{titulo:'Registro de administración',uno:'administración',campos:[
+  {k:'fecha',l:'Fecha',t:'date',req:1,d:HOY},{k:'hora',l:'Hora',t:'time'},
+  {k:'indicacion',l:'Indicación',t:'ref',col:'indicaciones',req:1},
+  {k:'estado',l:'Estado',t:'select',o:()=>['Administrada','Demorada','Omitida','Rechazada']},
+  {k:'motivo',l:'Motivo / observación',c:'Motivo',t:'text'},{k:'registradoPor',l:'Registrado por',t:'ref',col:'integrantes'}]},
+ incidentes:{titulo:'Eventos HSE',uno:'evento',campos:[
+  {k:'fecha',l:'Fecha',t:'date',req:1,d:HOY},{k:'tipo',l:'Tipo de evento',c:'Tipo',t:'select',o:()=>TIPOS_EV},
+  {k:'area',l:'Área o sector',c:'Área',t:'text'},{k:'turno',l:'Turno',t:'select',o:()=>A().turnos},
+  {k:'diasPerdidos',l:'Días perdidos',t:'num'},{k:'descripcion',l:'Descripción breve (sin nombres)',c:'Descripción',t:'text'},
+  {k:'accion',l:'Acción correctiva',t:'text'},{k:'accionVence',l:'Plazo de la acción',c:'Plazo acción',t:'date'},
+  {k:'accionCerrada',l:'Fecha de cierre de la acción (vacío = abierta)',c:'Acción cerrada',t:'date'}]},
+ horas:{titulo:'Horas trabajadas',uno:'mes de horas trabajadas',campos:[
+  {k:'periodo',l:'Mes',t:'month',req:1,d:HOY.slice(0,7)},{k:'horas',l:'Horas trabajadas por todo el personal del sitio',c:'Horas trabajadas',t:'num',req:1}]}
+};
+function vacio(){const d={ajustes:{org:'Mi equipo',turnos:['Día','Noche'],roles:['Enfermería','Medicina','Paramédico','Seguridad e higiene','Supervisión'],tipos:['Control','Atención','Inspección','Capacitación'],base:1000000,metas:{...METAS}}};COLS.forEach(c=>d[c]=[]);return d}
+function normal(r){if(!r||typeof r!=='object'||!r.ajustes)return null;const b=vacio();['turnos','roles','tipos'].forEach(k=>{if(!Array.isArray(r.ajustes[k])||!r.ajustes[k].length)r.ajustes[k]=b.ajustes[k]});r.ajustes.base=r.ajustes.base===200000?200000:1000000;const m=r.ajustes.metas||{};r.ajustes.metas={};Object.keys(METAS).forEach(k=>{const v=+m[k];r.ajustes.metas[k]=m[k]!=null&&isFinite(v)?Math.max(0,Math.min(100,v)):METAS[k]});COLS.forEach(c=>{r[c]=Array.isArray(r[c])?r[c].filter(x=>x&&typeof x==='object'&&x.id):[]});return r}
+function cargar(){try{const r=normal(JSON.parse(localStorage.getItem(KEY)));if(r)return r}catch(e){}return demo()}
+function guardar(){try{localStorage.setItem(KEY,JSON.stringify(db))}catch(e){}}
+const reg=(col,id)=>db[col].find(x=>x.id===id);
+function etq(col,id){const r=reg(col,id);if(!r)return '—';if(col==='indicaciones')return `${etq('pacientes',r.paciente)} · ${r.medicamento} ${r.dosis||''}`.trim();return r.codigo||r.nombre||r.titulo||'—'}
+
+/* ============ Datos ficticios ============ */
+function demo(){
+ const d=vacio();d.esDemo=true;d.ajustes.org='Servicio médico · Base demo';
+ let s=42,n=0;const r=()=>(s=(s*1664525+1013904223)%4294967296)/4294967296;
+ const ent=(a,b)=>a+Math.floor(r()*(b-a+1)),pick=a=>a[Math.floor(r()*a.length)],id=()=>'d'+(++n);
+ const rolesD=['Enfermería','Enfermería','Medicina','Paramédico','Seguridad e higiene','Enfermería','Paramédico','Medicina','Supervisión','Enfermería'];
+ rolesD.forEach((rol,i)=>d.integrantes.push({id:id(),codigo:'INT-'+String(i+1).padStart(2,'0'),rol,turno:i%3===2?'Noche':'Día',equipo:i<5?'Base Norte':'Base Sur',activo:true}));
+ const cur=['RCP y primeros auxilios','Manejo de H2S','Trabajo en altura','Manejo defensivo','Farmacovigilancia'];
+ d.integrantes.forEach(p=>{[pick(cur.slice(0,2)),pick(cur.slice(2))].forEach(c=>d.cursos.push({id:id(),integrante:p.id,curso:c,vence:addDias(HOY,ent(-40,300))}))});
+ for(let k=364;k>=0;k--){const f=addDias(HOY,-k);for(let j=ent(2,6);j>0;j--){const p=pick(d.integrantes),rs=r()<.3;
+  d.actividades.push({id:id(),fecha:f,tipo:pick(d.ajustes.tipos.concat(['Control','Atención'])),integrante:p.id,turno:p.turno,reqSeg:rs,segDoc:rs&&r()<.9,completo:r()<.92,nota:''})}}
+ const tt=['Revisar botiquín de unidad móvil','Control de matafuegos','Actualizar legajos médicos','Simulacro de evacuación','Informe mensual de atenciones','Verificar cadena de frío','Inspección de duchas lavaojos','Charla de 5 minutos'];
+ for(let k=0;k<200;k++){const as=addDias(HOY,-ent(0,355)),ve=addDias(as,ent(3,14));let co=r()<.93?addDias(ve,r()<.1?ent(1,4):ent(-5,0)):'';if(co>HOY)co='';if(co&&co<as)co=as;
+  d.tareas.push({id:id(),titulo:pick(tt),integrante:pick(d.integrantes).id,asignada:as,vence:ve,completada:co})}
+ [['Desfibrilador DEA','Emergencia','Operativo',120,'Enfermería Norte'],['Monitor multiparamétrico','Diagnóstico','Operativo',-12,'Enfermería Norte'],['Ambulancia 4x4','Vehículo','En mantenimiento',40,'Taller'],
+  ['Detector de gases portátil','Seguridad','Operativo',18,'Base Sur'],['Tensiómetro digital','Diagnóstico','Fuera de servicio',200,'Enfermería Sur'],['Heladera de medicamentos','Cadena de frío','Operativo',90,'Farmacia']]
+  .forEach(e=>d.equipos.push({id:id(),nombre:e[0],tipo:e[1],estado:e[2],calibVence:addDias(HOY,e[3]),ubicacion:e[4]}));
+ [['Paracetamol 500 mg','Medicamento',340,200,'comprimidos',210],['Ibuprofeno 400 mg','Medicamento',90,150,'comprimidos',95],['Enalapril 10 mg','Medicamento',260,120,'comprimidos',320],
+  ['Gasas estériles','Descartable',45,100,'sobres',400],['Guantes de nitrilo','Descartable',900,500,'unidades',500],['Solución fisiológica 500 ml','Medicamento',38,30,'unidades',22],
+  ['Adrenalina 1 mg/ml','Medicamento',12,10,'ampollas',-8],['Tiras reactivas de glucemia','Diagnóstico',150,100,'unidades',60]]
+  .forEach(e=>d.insumos.push({id:id(),nombre:e[0],categoria:e[1],stock:e[2],minimo:e[3],unidad:e[4],vence:addDias(HOY,e[5])}));
+ for(let m=0;m<3;m++){const dt=D(iniMes(HOY));dt.setMonth(dt.getMonth()-m);const per=iso(dt).slice(0,7);
+  [['Medicamentos e insumos',4200],['Mantenimiento de equipos',2500],['Capacitación',1800],['Personal eventual',3000]].forEach(c=>d.capital.push({id:id(),rubro:c[0],periodo:per,presupuestado:c[1],ejecutado:Math.round(c[1]*(.7+r()*.45))}))}
+ [['PAC-001','Perforación',''],['PAC-002','Mantenimiento','Ibuprofeno'],['PAC-003','Planta',''],['PAC-004','Campamento','Penicilina'],['PAC-005','Logística',''],['PAC-006','Perforación','']]
+  .forEach(p=>d.pacientes.push({id:id(),codigo:p[0],sector:p[1],alergias:p[2],activo:true}));
+ const P=d.pacientes;
+ [[0,'Enalapril','10 mg','Oral',1,-400,null,'MP-1021',false],[0,'Metformina','850 mg','Oral',2,-380,null,'MP-1021',false],[1,'Ibuprofeno','400 mg','Oral',3,-4,3,'MP-2210',false],
+  [2,'Amoxicilina','500 mg','Oral',3,-6,1,'MP-2210',false],[3,'Losartán','50 mg','Oral',1,-90,null,'',false],[4,'Tramadol','50 mg','Oral',2,-10,4,'MP-1021',true],
+  [5,'Salbutamol','2 puff','Inhalatoria',0,-60,null,'MP-3307',false],[2,'Omeprazol','20 mg','Oral',1,-30,null,'MP-2210',false],[2,'Omeprazol','20 mg','Oral',1,-12,null,'MP-3307',false]]
+  .forEach(i=>d.indicaciones.push({id:id(),paciente:P[i[0]].id,medicamento:i[1],dosis:i[2],via:i[3],dosisDia:i[4],inicio:addDias(HOY,i[5]),fin:i[6]===null?'':addDias(HOY,i[6]),prescriptor:i[7],controlado:i[8]}));
+ const hs=['08:00','14:00','20:00'];
+ d.indicaciones.forEach((i,ix)=>{const flojo=ix===4;let f=i.inicio;const fin=i.fin&&i.fin<HOY?i.fin:HOY;
+  for(;f<=fin;f=addDias(f,1))for(let k=0;k<i.dosisDia;k++){const x=r();if(x<(flojo?.3:.03))continue;
+   const est=x<.9?'Administrada':x<.94?'Demorada':x<.97?'Omitida':'Rechazada';
+   d.administraciones.push({id:id(),fecha:f,hora:hs[k]||'22:00',indicacion:i.id,estado:est,motivo:est==='Omitida'&&r()<.5?'Paciente en traslado':'',registradoPor:i.controlado&&r()<.2?'':pick(d.integrantes).id})}});
+ for(let m=0;m<12;m++){const dt=D(iniMes(HOY));dt.setMonth(dt.getMonth()-m);d.horas.push({id:id(),periodo:iso(dt).slice(0,7),horas:ent(38,46)*1000})}
+ const ar=['Perforación','Planta','Mantenimiento','Logística','Campamento'],ds=['Resbalón en superficie húmeda','Golpe con herramienta manual','Caída de objeto desde altura','Maniobra de izaje sin señalero','Derrame menor contenido','Contacto con superficie caliente','Vehículo liviano en reversa sin guía'],
+  acs=['Reforzar señalización del área','Revisar procedimiento de la tarea','Capacitación específica al sector','Reemplazar herramienta o elemento','Agregar punto de control en el permiso de trabajo'];
+ const ev=(tipo,dias,dp)=>{const f=addDias(HOY,-dias),con=tipo!=='Casi accidente'||r()<.5,ve=addDias(f,ent(7,30));let ci=con&&r()<.88?addDias(ve,r()<.2?ent(1,6):ent(-6,0)):'';if(ci>HOY)ci='';
+  d.incidentes.push({id:id(),fecha:f,tipo,area:pick(ar),turno:pick(d.ajustes.turnos),diasPerdidos:dp||0,descripcion:pick(ds),accion:con?pick(acs):'',accionVence:con?ve:'',accionCerrada:ci})};
+ for(let k=0;k<46;k++)ev('Casi accidente',ent(0,360));for(let k=0;k<9;k++)ev('Primeros auxilios',ent(0,360));
+ [300,205,48].forEach(x=>ev('Tratamiento médico',x));ev('Con días perdidos',140,6);for(let k=0;k<5;k++)ev('Daño material',ent(0,360));[250,70].forEach(x=>ev('Ambiental',x));
+ return d;
+}
+
+/* ============ Cálculo de indicadores ============ */
+const DIC=[
+ {k:'actividades',n:'Actividades registradas',f:'Cantidad de controles, atenciones, inspecciones y capacitaciones registradas en el período.',i:'Mide volumen, no calidad ni esfuerzo. Compararlo siempre con dotación y condiciones del turno.'},
+ {k:'tareas',n:'Cumplimiento de tareas',f:'Tareas completadas dentro del plazo ÷ tareas con plazo en el período.',i:'Un valor bajo puede indicar plazos poco realistas o sobrecarga, no falta de compromiso.'},
+ {k:'seguimiento',n:'Seguimiento documentado',f:'Actividades con seguimiento documentado ÷ actividades que requerían seguimiento.',i:'Depende de que se marque correctamente qué requiere seguimiento.'},
+ {k:'capacitacion',n:'Capacitación vigente',f:'Cursos y habilitaciones vigentes hoy ÷ cursos registrados.',i:'Sirve para planificar actualizaciones, no para calificar personas.'},
+ {k:'calidad',n:'Calidad del registro',f:'Registros marcados como completos ÷ registros revisados en el período.',i:'Requiere un criterio escrito y compartido de qué es un registro completo.'},
+ {k:'carga',n:'Carga por turno',f:'Actividades del turno ÷ integrantes activos del turno.',i:'Los turnos no son comparables sin considerar dotación, clima, distancias y tipo de operación.'},
+ {k:'equipos',n:'Disponibilidad de equipamiento',f:'Equipos en estado operativo ÷ equipos registrados.',i:'No pondera criticidad: un solo equipo crítico fuera de servicio puede pesar más que el porcentaje.'},
+ {k:'insumos',n:'Insumos bajo mínimo',f:'Cantidad de insumos con stock actual menor al stock mínimo definido.',i:'El mínimo debe revisarse según consumo real y tiempos de reposición del sitio.'},
+ {k:'presupuesto',n:'Ejecución de presupuesto',f:'Monto ejecutado ÷ monto presupuestado de los meses incluidos en el período.',i:'Sobre o subejecutar no es bueno ni malo por sí mismo; hay que mirar el motivo.'},
+ {k:'adherencia',n:'Adherencia de medicación',f:'Dosis administradas (incluye demoradas) ÷ dosis esperadas según la indicación. No cuenta medicación a demanda.',i:'Una dosis sin registro no prueba que no se administró. Es un indicador de proceso, no una evaluación clínica.'},
+ {k:'trif',n:'Frecuencia de eventos registrables',f:'Eventos con tratamiento médico o con días perdidos × base ÷ horas trabajadas. La base (un millón o 200.000 horas) se elige en Ajustes.',i:'Con pocas horas o períodos cortos, un solo evento mueve mucho el valor. Mirar períodos de 12 meses.'},
+ {k:'ltif',n:'Frecuencia de eventos con días perdidos',f:'Eventos con días perdidos × base ÷ horas trabajadas.',i:'Un valor bajo sostenido puede indicar buena gestión o bajo reporte; leerlo junto con los casi accidentes.'},
+ {k:'diasPerdidos',n:'Días perdidos',f:'Suma de los días perdidos de los eventos del período.',i:'Depende del criterio médico de alta; no sirve para comparar gravedad entre sitios distintos.'},
+ {k:'casi',n:'Casi accidentes reportados',f:'Cantidad de casi accidentes registrados en el período.',i:'Más reportes suele ser señal de buena cultura preventiva, no de más riesgo.'},
+ {k:'acciones',n:'Acciones correctivas en plazo',f:'Acciones cerradas dentro del plazo ÷ acciones con plazo en el período.',i:'Cerrar en plazo no garantiza que la acción fue eficaz; conviene verificarla en terreno.'},
+ {k:'diasSin',n:'Días sin accidentes con días perdidos',f:'Días transcurridos desde el último evento con días perdidos registrado.',i:'No usarlo como objetivo ni como premio: presiona a no reportar.'}
+];
+const def=k=>DIC.find(x=>x.k===k);
+function kpis(f){
+ const okP=id=>{const p=reg('integrantes',id);return (!f.rol||(p&&p.rol===f.rol))&&(!f.persona||id===f.persona)};
+ const acts=db.actividades.filter(a=>a.fecha>=f.desde&&a.fecha<=f.hasta&&(!f.turno||a.turno===f.turno)&&okP(a.integrante));
+ const tareas=db.tareas.filter(t=>t.vence>=f.desde&&t.vence<=f.hasta&&okP(t.integrante)&&(!f.turno||(reg('integrantes',t.integrante)||{}).turno===f.turno));
+ const req=acts.filter(a=>a.reqSeg);
+ const pers=db.integrantes.filter(p=>p.activo&&(!f.turno||p.turno===f.turno)&&(!f.rol||p.rol===f.rol)&&(!f.persona||p.id===f.persona));
+ const ids=new Set(pers.map(p=>p.id)),cursos=db.cursos.filter(c=>ids.has(c.integrante));
+ const cap=db.capital.filter(c=>c.periodo>=f.desde.slice(0,7)&&c.periodo<=f.hasta.slice(0,7));
+ const med=medStats(f.desde,f.hasta),esp=med.reduce((a,r)=>a+r.esp,0),dadas=med.reduce((a,r)=>a+r.adm+r.dem,0);
+ const porTipo={};acts.forEach(a=>porTipo[a.tipo]=(porTipo[a.tipo]||0)+1);
+ return {acts:acts.length,porTipo,
+  tareasN:tareas.filter(t=>t.completada&&t.completada<=t.vence).length,tareasD:tareas.length,
+  segN:req.filter(a=>a.segDoc).length,segD:req.length,
+  calN:acts.filter(a=>a.completo).length,calD:acts.length,
+  curN:cursos.filter(c=>c.vence>=HOY).length,curD:cursos.length,curPorVencer:cursos.filter(c=>c.vence>=HOY&&c.vence<=addDias(HOY,30)).length,
+  eqN:db.equipos.filter(e=>e.estado==='Operativo').length,eqD:db.equipos.length,
+  insBajo:db.insumos.filter(i=>+i.stock<+i.minimo).length,insD:db.insumos.length,
+  capN:cap.reduce((a,c)=>a+(+c.ejecutado||0),0),capD:cap.reduce((a,c)=>a+(+c.presupuestado||0),0),
+  medN:dadas,medD:esp,dotacion:pers.length};
+}
+function medStats(desde,hasta){
+ return db.indicaciones.map(i=>{
+  const a=i.inicio>desde?i.inicio:desde;let b=i.fin&&i.fin<hasta?i.fin:hasta;if(b>HOY)b=HOY;
+  const dias=a<=b?difDias(a,b)+1:0,esp=dias*Math.max(0,+i.dosisDia||0);
+  const regs=db.administraciones.filter(x=>x.indicacion===i.id&&x.fecha>=desde&&x.fecha<=hasta);
+  const c=e=>regs.filter(x=>x.estado===e).length,adm=c('Administrada'),dem=c('Demorada');
+  return {i,esp,adm,dem,omi:c('Omitida'),rec:c('Rechazada'),regs:regs.length,sin:Math.max(0,esp-regs.length),adh:pct(Math.min(adm+dem,esp),esp)};
+ }).filter(r=>r.esp>0||r.regs>0);
+}
+function cubos(f){const out=[];let c=f.grano==='mes'?iniMes(f.desde):lunes(f.desde);
+ while(c<=f.hasta&&out.length<120){const fin=f.grano==='mes'?finMes(c):addDias(c,6);out.push({ini:c,fin,l:f.grano==='mes'?c.slice(5,7)+'/'+c.slice(2,4):fmt(c).slice(0,5)});c=addDias(fin,1)}return out}
+function hse(f){
+ const ev=db.incidentes.filter(e=>e.fecha>=f.desde&&e.fecha<=f.hasta&&(!f.turno||e.turno===f.turno)),n=t=>ev.filter(e=>e.tipo===t).length;
+ const horas=db.horas.filter(x=>x.periodo>=f.desde.slice(0,7)&&x.periodo<=f.hasta.slice(0,7)).reduce((a,x)=>a+(+x.horas||0),0);
+ const reg=ev.filter(e=>REG.includes(e.tipo)).length,lti=n('Con días perdidos'),base=A().base;
+ const acc=db.incidentes.filter(e=>String(e.accion||'').trim()&&e.accionVence&&e.accionVence>=f.desde&&e.accionVence<=f.hasta&&(!f.turno||e.turno===f.turno));
+ return {total:ev.length,porTipo:Object.fromEntries(TIPOS_EV.map(t=>[t,n(t)])),casi:n('Casi accidente'),lesiones:n('Primeros auxilios')+reg,otros:n('Daño material')+n('Ambiental'),reg,lti,
+  dias:ev.reduce((a,e)=>a+(+e.diasPerdidos||0),0),horas,trif:horas?reg*base/horas:null,ltif:horas?lti*base/horas:null,
+  accN:acc.filter(e=>e.accionCerrada&&e.accionCerrada<=e.accionVence).length,accD:acc.length};
+}
+const MES=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+const dec=v=>v==null?'—':v.toLocaleString('es',{maximumFractionDigits:1});
+const baseTxt=()=>A().base===200000?'200.000 horas':'millón de horas';
+const EST={good:['✓','En meta'],warn:['!','Cerca de la meta'],crit:['✕','Bajo la meta'],nd:['–','Sin datos']};
+const chip=(e,t)=>`<span class="st e-${e}"><i>${EST[e][0]}</i>${t||EST[e][1]}</span>`;
+const estado=(v,m)=>v==null?'nd':v>=m?'good':v>=m-10?'warn':'crit';
+function preventivos(k,h){
+ return [['acciones','Acciones correctivas en plazo',h.accN,h.accD],['tareas','Cumplimiento de tareas',k.tareasN,k.tareasD],['seguimiento','Seguimiento documentado',k.segN,k.segD],
+  ['calidad','Calidad del registro',k.calN,k.calD],['capacitacion','Capacitación vigente',k.curN,k.curD],['equipos','Equipamiento operativo',k.eqN,k.eqD],['adherencia','Adherencia de medicación',Math.min(k.medN,k.medD),k.medD]]
+  .map(([key,n,a,b])=>{const v=pct(a,b),meta=A().metas[key];return {key,n,v,meta,sub:`${num(a)} de ${num(b)}`,est:estado(v,meta)}});
+}
+function meses12(hasta){const out=[],d=D(iniMes(hasta));d.setMonth(d.getMonth()-11);
+ for(let i=0;i<12;i++){const ini=iso(d);out.push({ini,fin:finMes(ini),l:MES[d.getMonth()]+' '+String(d.getFullYear()).slice(2)});d.setMonth(d.getMonth()+1)}return out}
+/* Gráficos SVG: un solo eje, marcas finas, etiquetas escapadas, valores también en tabla */
+const CW=()=>innerWidth<600?360:640;
+const tp=s=>String(s??'').replace(/[|~]/g,' ');
+function techo(v){if(v<=2)return 2;const p=10**Math.floor(Math.log10(v)),m=v/p;return (m<=2?2:m<=4?4:m<=6?6:m<=8?8:10)*p}
+function marco(cats,max,suf,cuerpo){
+ const W=CW(),H=220,ml=38,mr=10,mt=16,mb=24,pw=W-ml-mr,ph=H-mt-mb,band=pw/Math.max(1,cats.length);
+ const y=v=>mt+ph-ph*Math.min(v,max)/max,x=i=>ml+band*(i+.5),paso=Math.ceil(cats.length/(pw/46));
+ const g=[max,max/2,0].map(t=>`<line class="${t?'gl':'bl'}" x1="${ml}" x2="${W-mr}" y1="${y(t)}" y2="${y(t)}"/><text class="sl" x="${ml-6}" y="${y(t)+3}" text-anchor="end">${num(t)}${suf}</text>`).join('');
+ const xl=cats.map((c,i)=>i%paso===0?`<text class="sl" x="${x(i)}" y="${H-7}" text-anchor="middle">${esc(c)}</text>`:'').join('');
+ return `<svg viewBox="0 0 ${W} ${H}" role="img">${g}${cuerpo({x,y,band,mt,ph})}${xl}</svg>`;
+}
+function tipSeries(c,series,i,suf){return esc(tp(c)+'|'+series.map(s=>`${s.c}~${s.v[i]==null?'sin datos':num(s.v[i])+suf}~${tp(s.n)}`).join('|'))}
+function columnas(cats,series,o={}){
+ const suf=o.suf||'',tot=cats.map((_,i)=>series.reduce((a,s)=>a+(s.v[i]||0),0)),max=o.tope||techo(Math.max(0,...tot));
+ return marco(cats,max,suf,({x,y,band,mt,ph})=>cats.map((c,i)=>{
+  const bw=Math.min(24,band*.7),x0=x(i)-bw/2,vis=series.filter(s=>s.v[i]>0);let acc=0,m='';
+  vis.forEach((s,k)=>{const yb=y(acc),yt=y(acc+=s.v[i]),ult=k===vis.length-1,top=yt+(ult?0:2),hh=Math.max(yb-top,1),r=ult?Math.min(4,hh,bw/2):0;
+   m+=`<path fill="${s.c}" d="M${x0},${top+hh}V${top+r}Q${x0},${top} ${x0+r},${top}H${x0+bw-r}Q${x0+bw},${top} ${x0+bw},${top+r}V${top+hh}Z"/>`});
+  const lab=series.length===1&&cats.length<=14&&series[0].v[i]!=null?`<text class="sv" x="${x(i)}" y="${y(tot[i])-5}" text-anchor="middle">${num(tot[i])}${suf}</text>`:'';
+  return `<g class="hit col" tabindex="0" data-tip="${tipSeries(c,series,i,suf)}"><rect x="${x(i)-band/2}" y="${mt}" width="${band}" height="${ph}"/>${m}${lab}</g>`}).join(''));
+}
+function lineas(cats,series,o={}){
+ const suf=o.suf||'',max=o.tope||techo(Math.max(0,...series.flatMap(s=>s.v.map(v=>v||0))));
+ return marco(cats,max,suf,({x,y,band,mt,ph})=>series.map(s=>{let d='',pen=false,fin=-1;
+   s.v.forEach((v,i)=>{if(v==null){pen=false;return}d+=(pen?'L':'M')+x(i).toFixed(1)+','+y(v).toFixed(1);pen=true;fin=i});
+   const pts=s.v.map((v,i)=>v!=null&&(i===fin||(s.v[i-1]==null&&s.v[i+1]==null))?`<circle cx="${x(i)}" cy="${y(v)}" r="4" fill="${s.c}" stroke="var(--card)" stroke-width="2"/>`:'').join('');
+   return `<path d="${d}" fill="none" stroke="${s.c}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>${pts}`}).join('')
+  +cats.map((c,i)=>`<g class="hit" tabindex="0" data-tip="${tipSeries(c,series,i,suf)}"><rect x="${x(i)-band/2}" y="${mt}" width="${band}" height="${ph}"/><line class="cross" x1="${x(i)}" x2="${x(i)}" y1="${mt}" y2="${mt+ph}"/></g>`).join(''));
+}
+const leyenda=(series,linea)=>`<div class="leg">${series.map(s=>`<span><i class="${linea?'ln':''}" style="background:${s.c}"></i>${esc(s.n)}${s.x?' · '+esc(s.x):''}</span>`).join('')}</div>`;
+function hbarras(filas,o={}){
+ const max=o.max||Math.max(1,...filas.map(f=>f.v||0));
+ return `<div class="hb">${filas.map(f=>`<div class="hbr" tabindex="0" data-tip="${esc(tp(f.n)+'|~'+tp(f.txt)+'~')}"><span class="hbn">${esc(f.n)}</span><span class="hbt${o.medidor?' m':''}"><b style="width:${f.v==null?0:Math.min(100,f.v/max*100)}%"></b>${f.meta!=null?`<u style="left:calc(${Math.min(100,f.meta/max*100)}% - 1px)"></u>`:''}</span><span class="hbv"><strong>${esc(f.val)}</strong>${f.extra||''}</span></div>`).join('')}</div>`;
+}
+const tablaDatos=(cab,filas)=>`<details class="tv"><summary>Ver datos en tabla</summary><div class="tw"><table><thead><tr>${cab.map(c=>`<th>${esc(c)}</th>`).join('')}</tr></thead><tbody>${filas.map(r=>`<tr>${r.map(c=>`<td>${esc(c==null?'—':c)}</td>`).join('')}</tr>`).join('')}</tbody></table></div></details>`;
+
+/* ============ Detección de hallazgos ============ */
+function hallazgos(){
+ const H=[],add=(sev,area,titulo,detalle,sug)=>H.push({sev,area,titulo,detalle,sug});
+ const d7=addDias(HOY,-6),d30=addDias(HOY,-29),ayer=addDias(HOY,-1),en30=addDias(HOY,30);
+ const activa=i=>i.inicio<=HOY&&(!i.fin||i.fin>=HOY);
+ medStats(d7,HOY).forEach(r=>{if(r.adh!==null&&r.adh<80)add('alta','Medicación','Adherencia baja en los últimos 7 días',`${etq('indicaciones',r.i.id)}: ${r.adh}% (${r.adm+r.dem} de ${r.esp} dosis esperadas, ${r.sin} sin registro).`,'Revisar causas de proceso: horarios, disponibilidad del medicamento, rechazo del paciente, traslados o registros faltantes.')});
+ medStats(ayer,ayer).forEach(r=>{if(r.sin>0)add('media','Medicación','Dosis sin registro ayer',`${etq('indicaciones',r.i.id)}: ${r.sin} dosis esperada(s) sin registro el ${fmt(ayer)}.`,'Confirmar si la dosis se administró y completar el registro, o documentar el motivo de la omisión.')});
+ const porDia={};db.administraciones.forEach(a=>{if(a.fecha>=d30&&(a.estado==='Administrada'||a.estado==='Demorada')){const k=a.indicacion+'|'+a.fecha;porDia[k]=(porDia[k]||0)+1}});
+ Object.entries(porDia).forEach(([k,n])=>{const [iid,f]=k.split('|'),i=reg('indicaciones',iid);if(i&&+i.dosisDia>0&&n>+i.dosisDia)add('alta','Medicación','Más dosis registradas que las indicadas',`${etq('indicaciones',iid)}: ${n} dosis registradas el ${fmt(f)} (indicadas: ${i.dosisDia}).`,'Verificar si es un registro duplicado o una dosis adicional; si fue adicional, confirmar que exista indicación que la respalde.')});
+ const dup={};db.indicaciones.filter(activa).forEach(i=>{const k=i.paciente+'|'+String(i.medicamento).trim().toLowerCase();(dup[k]=dup[k]||[]).push(i)});
+ Object.values(dup).forEach(l=>{if(l.length>1)add('alta','Medicación','Indicación duplicada activa',`${etq('pacientes',l[0].paciente)} tiene ${l.length} indicaciones activas de ${l[0].medicamento}.`,'Consultar con el prescriptor cuál indicación es la vigente y cerrar la otra.')});
+ db.indicaciones.filter(activa).forEach(i=>{
+  if(!String(i.prescriptor||'').trim())add('media','Medicación','Indicación activa sin prescriptor',`${etq('indicaciones',i.id)} no tiene prescriptor registrado.`,'Completar el dato de prescriptor; toda indicación debe poder trazarse a quien la emitió.');
+  const p=reg('pacientes',i.paciente),al=p?String(p.alergias||'').toLowerCase().split(/[,;]/).map(x=>x.trim()).filter(x=>x.length>2):[];
+  if(al.some(a=>String(i.medicamento).toLowerCase().includes(a)))add('alta','Medicación','Medicamento coincide con una alergia registrada',`${etq('indicaciones',i.id)}: el paciente tiene registrada alergia a "${p.alergias}".`,'Verificar de inmediato con el profesional prescriptor. La coincidencia es solo por nombre: no detecta familias de fármacos ni reacciones cruzadas.')});
+ const fuera={};db.administraciones.forEach(a=>{const i=reg('indicaciones',a.indicacion);if(i&&a.estado!=='Omitida'&&(a.fecha<i.inicio||(i.fin&&a.fecha>i.fin)))fuera[i.id]=(fuera[i.id]||0)+1});
+ Object.entries(fuera).forEach(([iid,n])=>add('media','Medicación','Administración fuera del período indicado',`${etq('indicaciones',iid)}: ${n} registro(s) con fecha anterior al inicio o posterior al fin de la indicación.`,'Revisar si corresponde renovar la indicación o corregir la fecha del registro.'));
+ const r30=db.administraciones.filter(a=>a.fecha>=d30);
+ const omi=r30.filter(a=>(a.estado==='Omitida'||a.estado==='Rechazada')&&!String(a.motivo||'').trim()).length;
+ if(omi)add('media','Medicación','Omisiones o rechazos sin motivo documentado',`${omi} registro(s) en los últimos 30 días sin motivo.`,'Hacer obligatorio el motivo al registrar una omisión o rechazo; sin motivo no se puede distinguir un problema de proceso de una decisión clínica.');
+ const ctrl=r30.filter(a=>{const i=reg('indicaciones',a.indicacion);return i&&i.controlado&&!a.registradoPor}).length;
+ if(ctrl)add('alta','Medicación','Medicamento controlado sin responsable del registro',`${ctrl} administración(es) de medicamentos controlados en los últimos 30 días sin "registrado por".`,'Completar el responsable y conciliar con el libro o planilla de control de estupefacientes.');
+ db.insumos.forEach(i=>{
+  if(+i.stock<+i.minimo)add('media','Insumos','Insumo por debajo del stock mínimo',`${i.nombre}: ${num(i.stock)} ${i.unidad||''} (mínimo ${num(i.minimo)}).`,'Generar pedido de reposición considerando el tiempo de entrega al sitio.');
+  if(i.vence&&i.vence<HOY)add('alta','Insumos','Insumo vencido en stock',`${i.nombre}: venció el ${fmt(i.vence)}.`,'Separar del stock utilizable y gestionar baja y reposición.');
+  else if(i.vence&&i.vence<=en30)add('baja','Insumos','Insumo próximo a vencer',`${i.nombre}: vence el ${fmt(i.vence)}.`,'Priorizar su uso (primero vence, primero sale) o prever reposición.')});
+ db.equipos.forEach(e=>{
+  if(e.estado==='Fuera de servicio')add('alta','Equipamiento','Equipo fuera de servicio',`${e.nombre} (${e.ubicacion||'sin ubicación'}).`,'Definir equipo de respaldo y fecha estimada de reparación.');
+  if(e.calibVence&&e.calibVence<HOY)add('media','Equipamiento','Calibración o mantenimiento vencido',`${e.nombre}: venció el ${fmt(e.calibVence)}.`,'Programar la calibración y evaluar si el equipo puede seguir en uso mientras tanto.');
+  else if(e.calibVence&&e.calibVence<=en30)add('baja','Equipamiento','Calibración próxima a vencer',`${e.nombre}: vence el ${fmt(e.calibVence)}.`,'Agendar el servicio antes del vencimiento.')});
+ const act=new Set(db.integrantes.filter(p=>p.activo).map(p=>p.id)),cs=db.cursos.filter(c=>act.has(c.integrante));
+ const cv=cs.filter(c=>c.vence<HOY),cp=cs.filter(c=>c.vence>=HOY&&c.vence<=en30);
+ if(cv.length)add('media','Capacitación','Cursos o habilitaciones vencidos',`${cv.length} vencido(s): ${cv.slice(0,6).map(c=>etq('integrantes',c.integrante)+' ('+c.curso+')').join(', ')}${cv.length>6?'…':''}.`,'Planificar la actualización y revisar si alguna tarea crítica requiere esa habilitación vigente.');
+ if(cp.length)add('baja','Capacitación','Cursos que vencen en los próximos 30 días',`${cp.length} por vencer: ${cp.slice(0,6).map(c=>etq('integrantes',c.integrante)+' ('+c.curso+')').join(', ')}${cp.length>6?'…':''}.`,'Reservar cupos de capacitación antes del vencimiento.');
+ const tv=db.tareas.filter(t=>!t.completada&&t.vence<HOY);
+ if(tv.length)add('media','Tareas','Tareas vencidas sin completar',`${tv.length} tarea(s) pendientes con plazo vencido; la más antigua venció el ${fmt(tv.map(t=>t.vence).sort()[0])}.`,'Revisar si los plazos son realistas, reasignar o cerrar las que ya no aplican.');
+ const a90=db.actividades.filter(a=>a.fecha>=addDias(HOY,-89)),sp=a90.filter(a=>a.reqSeg&&!a.segDoc).length;
+ if(sp)add('media','Seguimiento','Seguimientos pendientes de documentar',`${sp} actividad(es) de los últimos 90 días requerían seguimiento y no lo tienen documentado.`,'Asignar responsable y fecha a cada seguimiento pendiente.');
+ const a30=db.actividades.filter(a=>a.fecha>=d30),cal=pct(a30.filter(a=>a.completo).length,a30.length);
+ if(cal!==null&&cal<90)add('baja','Registro','Calidad del registro por debajo del 90%',`${cal}% de registros completos en los últimos 30 días.`,'Identificar qué campos quedan incompletos y simplificar el formulario o reforzar el criterio.');
+ const ct=A().turnos.map(t=>{const dot=db.integrantes.filter(p=>p.activo&&p.turno===t).length;return {t,r:dot?a30.filter(a=>a.turno===t).length/dot:null}}).filter(x=>x.r!==null&&x.r>0);
+ if(ct.length>1){ct.sort((a,b)=>b.r-a.r);const mx=ct[0],mn=ct[ct.length-1];if(mx.r>mn.r*1.5)add('baja','Carga','Diferencia de carga entre turnos',`Turno ${mx.t}: ${mx.r.toFixed(1)} actividades por persona en 30 días; turno ${mn.t}: ${mn.r.toFixed(1)}.`,'Interpretar junto con dotación y condiciones de cada turno antes de redistribuir.')}
+ db.capital.forEach(c=>{if(+c.presupuestado>0&&+c.ejecutado>+c.presupuestado)add('baja','Presupuesto','Rubro sobreejecutado',`${c.rubro} (${c.periodo}): ejecutado ${num(c.ejecutado)} sobre ${num(c.presupuestado)} presupuestado.`,'Revisar el motivo del desvío y ajustar la previsión de los próximos meses.')});
+ const accV=db.incidentes.filter(e=>String(e.accion||'').trim()&&!e.accionCerrada&&e.accionVence&&e.accionVence<HOY);
+ if(accV.length)add('alta','Eventos HSE','Acciones correctivas vencidas sin cerrar',`${accV.length} acción(es) abiertas con plazo vencido; la más antigua venció el ${fmt(accV.map(e=>e.accionVence).sort()[0])}.`,'Asignar responsable y nueva fecha, y escalar a gerencia las que dependen de recursos o de decisiones de otra área.');
+ const sinAcc=db.incidentes.filter(e=>e.fecha>=addDias(HOY,-89)&&e.tipo!=='Casi accidente'&&!String(e.accion||'').trim()).length;
+ if(sinAcc)add('media','Eventos HSE','Eventos sin acción correctiva definida',`${sinAcc} evento(s) de los últimos 90 días no tienen acción correctiva.`,'Completar la investigación y definir al menos una acción con responsable y plazo.');
+ const mesAnt=addDias(iniMes(HOY),-1).slice(0,7);
+ if(db.incidentes.length&&!db.horas.some(x=>x.periodo===mesAnt))add('baja','Eventos HSE','Faltan las horas trabajadas del mes anterior',`No hay horas cargadas para ${mesAnt}.`,'Cargar las horas trabajadas del sitio para poder calcular las frecuencias.');
+ const h90=hse({desde:addDias(HOY,-89),hasta:HOY});
+ if(h90.lesiones>0&&h90.casi<h90.lesiones)add('media','Eventos HSE','Pocos casi accidentes reportados frente a las lesiones',`En 90 días: ${h90.casi} casi accidentes y ${h90.lesiones} lesiones.`,'Lo esperable es reportar muchos más casi accidentes que lesiones. Reforzar y simplificar el reporte, sin consecuencias para quien reporta.');
+ const o={alta:0,media:1,baja:2};return H.sort((a,b)=>o[a.sev]-o[b.sev]);
+}
+function consultaIA(){
+ const f={desde:addDias(HOY,-89),hasta:HOY},k=kpis(f),h=hse(f),H=hallazgos(),g={};
+ H.forEach(h=>{const key=`[${h.sev}] ${h.area}: ${h.titulo}`;g[key]=(g[key]||0)+1});
+ return `Actúa como asesor en gestión de equipos de salud ocupacional en industria (petróleo, minería, grandes plantas).
+Te paso un resumen anonimizado de mi equipo, sin nombres ni datos de pacientes.
+
+Indicadores de los últimos 90 días:
+- Actividades registradas: ${k.acts} (${Object.entries(k.porTipo).map(([t,n])=>t+': '+n).join(', ')||'sin detalle'})
+- Cumplimiento de tareas en plazo: ${verPct(pct(k.tareasN,k.tareasD))} (${k.tareasN} de ${k.tareasD})
+- Seguimiento documentado: ${verPct(pct(k.segN,k.segD))} (${k.segN} de ${k.segD})
+- Calidad del registro: ${verPct(pct(k.calN,k.calD))}
+- Capacitaciones vigentes: ${verPct(pct(k.curN,k.curD))} (${k.curPorVencer} vencen en 30 días)
+- Equipos operativos: ${k.eqN} de ${k.eqD}
+- Insumos bajo stock mínimo: ${k.insBajo} de ${k.insD}
+- Ejecución de presupuesto: ${verPct(pct(k.capN,k.capD))}
+- Adherencia de medicación: ${verPct(pct(k.medN,k.medD))} (${k.medN} de ${k.medD} dosis esperadas)
+- Eventos HSE: ${h.total} (${h.casi} casi accidentes, ${h.lesiones} lesiones, de ellas ${h.reg} registrables y ${h.lti} con días perdidos)
+- Frecuencia de registrables: ${dec(h.trif)} por ${baseTxt()}
+- Acciones correctivas cerradas en plazo: ${verPct(pct(h.accN,h.accD))} (${h.accN} de ${h.accD})
+- Dotación activa: ${k.dotacion} personas, turnos: ${A().turnos.join(', ')}
+
+Hallazgos detectados automáticamente (tipo y cantidad de casos):
+${Object.entries(g).map(([t,n])=>`- ${t} (${n})`).join('\n')||'- Ninguno'}
+
+Te pido:
+1. Ordena los hallazgos por prioridad y explica por qué.
+2. Para los tres más importantes, propone causas probables de proceso (no individuales) y acciones concretas para los próximos 30 días.
+3. Indica qué datos adicionales convendría registrar para confirmar cada causa.
+No des indicaciones clínicas sobre pacientes concretos ni evalúes personas; enfócate en procesos, recursos y organización.`;
+}
+
+/* ============ Vistas ============ */
+let db=cargar(),tab='gerencia',q='',sevF='';
+const F={desde:addDias(HOY,-89),hasta:HOY,turno:'',rol:'',persona:'',grano:'semana'};
+const M={ancla:HOY,grano:'semana'};
+const TABS=[['gerencia','Resumen gerencial'],['tablero','Tablero operativo'],['equipo','Equipo'],['actividad','Actividades y tareas'],['incidentes','Eventos HSE'],['recursos','Recursos'],['medicacion','Medicación'],['asistente','Asistente'],['guia','Definiciones y privacidad'],['ajustes','Ajustes']];
+const opts=(l,sel,vac)=>(vac!==undefined?`<option value="">${esc(vac)}</option>`:'')+l.map(o=>{const v=Array.isArray(o)?o[0]:o,t=Array.isArray(o)?o[1]:o;return `<option value="${esc(v)}"${v===sel?' selected':''}>${esc(t)}</option>`}).join('');
+function celda(c,v){if(c.t==='check')return v?'Sí':'No';if(c.t==='ref')return esc(etq(c.col,v));if(c.t==='date')return fmt(v);if(c.t==='num')return num(v);return esc(v)||'—'}
+function tabla(col,filas){
+ const sc=S[col],fk=(sc.campos.find(c=>c.t==='date'||c.t==='month')||{}).k;let l=(filas||db[col]).slice();
+ if(fk)l.sort((a,b)=>String(b[fk]||'').localeCompare(String(a[fk]||'')));
+ const tot=l.length;l=l.slice(0,150);
+ if(!tot)return `<p class="mut">Todavía no hay registros. Usa "Agregar" para cargar el primero.</p>`;
+ return `<div class="tw"><table><thead><tr>${sc.campos.map(c=>`<th>${esc(c.c||c.l)}</th>`).join('')}<th></th></tr></thead><tbody>${l.map(r=>`<tr>${sc.campos.map(c=>`<td>${celda(c,r[c.k])}</td>`).join('')}<td class="acc"><button class="min" data-act="editar" data-col="${col}" data-id="${esc(r.id)}">Editar</button> <button class="min pel" data-act="borrar" data-col="${col}" data-id="${esc(r.id)}">Borrar</button></td></tr>`).join('')}</tbody></table></div>${tot>150?`<p class="mut">Se muestran los 150 más recientes de ${tot}. El CSV incluye todos.</p>`:''}`;
+}
+function seccion(col,filas,nota){return `<section class="card"><div class="sh"><h2>${S[col].titulo}</h2><span><button data-act="csv" data-col="${col}">Descargar CSV</button> <button class="pri" data-act="nuevo" data-col="${col}">+ Agregar</button></span></div>${nota?`<p class="mut">${nota}</p>`:''}${tabla(col,filas)}</section>`}
+function tile(k,valor,sub,extra){const d=def(k);return `<div class="tile"><span>${d.n}</span><b>${valor}</b><small>${sub||'&nbsp;'}</small>${extra?`<small>${extra}</small>`:''}<em>${d.f}</em></div>`}
+
+function fPeriodo(){
+ const p=F.hasta===HOY?['30','90','180','365'].find(n=>F.desde===addDias(HOY,-(n-1))):undefined;
+ return `<label>Período<select data-preset>${opts([['30','Últimos 30 días'],['90','Últimos 90 días'],['180','Últimos 6 meses'],['365','Últimos 12 meses']],p,'Personalizado')}</select></label><label>Desde<input type="date" data-f="desde" value="${F.desde}"></label><label>Hasta<input type="date" data-f="hasta" value="${F.hasta}"></label>`;
+}
+function delta(a,b,ant,o={}){
+ if(a==null||b==null)return '';const d=a-b;
+ if(Math.abs(d)<.05)return `<span class="delta">= Igual que en ${ant}</span>`;
+ const sube=d>0,cls=o.bueno?((o.bueno==='sube')===sube?'up':'down'):'';
+ return `<span class="delta ${cls}">${sube?'▲':'▼'} ${dec(Math.abs(d))} ${sube?'más':'menos'} que en ${ant}</span>`;
+}
+function resumen(f,h,prev,altas){
+ const ok=prev.filter(p=>p.est==='good'),mal=prev.filter(p=>p.est==='crit'||p.est==='warn').sort((a,b)=>(a.v-a.meta)-(b.v-b.meta)),g={};
+ altas.forEach(x=>{const k=x.area+': '+x.titulo;(g[k]=g[k]||{n:0,s:x.sug,a:x.area}).n++});
+ const gs=Object.entries(g),vistas=new Set(),dec1=gs.filter(([,x])=>!vistas.has(x.a)&&vistas.add(x.a)),decs=dec1.concat(gs.filter(e=>!dec1.includes(e))).slice(0,5);
+ const fr=h.trif==null?'No se puede calcular la frecuencia porque faltan las horas trabajadas de este período.':`Eso equivale a <b>${dec(h.trif)} eventos registrables por ${baseTxt()}</b> trabajadas.`;
+ const cultura=h.lesiones>0&&h.casi<h.lesiones?`<li>Se reportan menos casi accidentes (${h.casi}) que lesiones (${h.lesiones}); lo esperable es lo contrario.</li>`:'';
+ return `<h3>En pocas palabras</h3><p>Entre el ${fmt(f.desde)} y el ${fmt(f.hasta)} se registraron <b>${h.total} eventos</b>: ${h.casi} casi accidentes, ${h.lesiones} lesiones (${h.reg} ${h.reg===1?'registrable':'registrables'}, ${h.lti} con días perdidos) y ${h.otros} de daño material o ambiental. ${fr}</p>
+ <h3>Qué va bien</h3>${ok.length?`<ul>${ok.map(p=>`<li>${p.n}: ${p.v}%, sobre la meta de ${p.meta}%.</li>`).join('')}</ul>`:'<p>Ningún indicador preventivo alcanza su meta en este período.</p>'}
+ <h3>Qué necesita atención</h3>${mal.length||cultura?`<ul>${mal.map(p=>`<li>${p.n}: ${p.v}%, ${p.meta-p.v} puntos por debajo de la meta (${p.sub}).</li>`).join('')}${cultura}</ul>`:'<p>Todos los indicadores preventivos con datos están en meta.</p>'}
+ <h3>Decisiones sugeridas</h3>${decs.length?`<ul>${decs.map(([t,x])=>`<li><b>${esc(t)}</b> (${x.n} ${x.n===1?'caso':'casos'}). ${esc(x.s)}</li>`).join('')}</ul>`:'<p>No hay hallazgos de prioridad alta abiertos.</p>'}`;
+}
+function vGerencia(){
+ const f={...F,rol:'',persona:''},n=difDias(f.desde,f.hasta)+1,fp={...f,desde:addDias(f.desde,-n),hasta:addDias(f.desde,-1)},ant=`los ${n} días anteriores`;
+ const k=kpis(f),h=hse(f),hp=hse(fp),H=hallazgos(),altas=H.filter(x=>x.sev==='alta'),prev=preventivos(k,h);
+ const ult=db.incidentes.filter(e=>e.tipo==='Con días perdidos'&&e.fecha<=HOY).map(e=>e.fecha).sort().pop();
+ const ms=meses12(f.hasta),cats=ms.map(m=>m.l),pm=ms.map(m=>m.ini>HOY?null:(fm=>({k:kpis(fm),h:hse(fm)}))({...f,desde:m.ini,hasta:m.fin>HOY?HOY:m.fin}));
+ const sEv=[{n:'Casi accidentes',c:'var(--s1)',v:pm.map(x=>x&&x.h.casi)},{n:'Lesiones',c:'var(--s2)',v:pm.map(x=>x&&x.h.lesiones)},{n:'Daño material o ambiental',c:'var(--s3)',v:pm.map(x=>x&&x.h.otros)}];
+ const sTe=[{n:'Tareas en plazo',c:'var(--s1)',v:pm.map(x=>x&&pct(x.k.tareasN,x.k.tareasD))},{n:'Seguimiento documentado',c:'var(--s2)',v:pm.map(x=>x&&pct(x.k.segN,x.k.segD))},{n:'Adherencia de medicación',c:'var(--s3)',v:pm.map(x=>x&&pct(Math.min(x.k.medN,x.k.medD),x.k.medD))}];
+ sTe.forEach(s=>{const v=s.v.filter(x=>x!=null).pop();s.x=v==null?'sin datos':'último mes '+v+'%'});
+ const rub={};db.capital.filter(c=>c.periodo>=f.desde.slice(0,7)&&c.periodo<=f.hasta.slice(0,7)).forEach(c=>{const r=rub[c.rubro]=rub[c.rubro]||{p:0,e:0};r.p+=+c.presupuestado||0;r.e+=+c.ejecutado||0});
+ const fRub=Object.entries(rub).map(([n,r])=>{const v=pct(r.e,r.p);return {n,v,meta:100,val:verPct(v),txt:`${num(r.e)} ejecutado de ${num(r.p)} presupuestado`,extra:v==null?chip('nd'):v>100?chip('warn','Sobre presupuesto'):chip('good','Dentro del presupuesto'),e:r.e,p:r.p}});
+ const ar={};H.forEach(x=>{const a=ar[x.area]=ar[x.area]||{n:0,a:0};a.n++;if(x.sev==='alta')a.a++});
+ const fAr=Object.entries(ar).sort((a,b)=>b[1].n-a[1].n).map(([n,a])=>({n,v:a.n,val:String(a.n),txt:`${a.n} hallazgos, ${a.a} de prioridad alta`,extra:`<span>${a.a} de prioridad alta</span>`,a:a.a}));
+ const fPrev=prev.map(p=>({n:p.n,v:p.v,meta:p.meta,val:verPct(p.v),txt:`${verPct(p.v)} (${p.sub}), meta ${p.meta}%`,extra:chip(p.est)}));
+ const fTipo=TIPOS_EV.map(t=>({n:t,v:h.porTipo[t],val:String(h.porTipo[t]),txt:h.porTipo[t]+' eventos'}));
+ const tl=(n,v,sub,dl,d)=>`<div class="tile"><span>${n}</span><b>${v}</b><small>${sub}</small>${dl}<em>${d}</em></div>`;
+ const graf=(t,sub,cuerpo)=>`<section class="card"><h2>${t}</h2><p class="mut">${sub}</p>${cuerpo}</section>`;
+ const sinEv=db.incidentes.length?'':'<p class="mut">Todavía no hay eventos cargados. Agrégalos en la pestaña Eventos HSE.</p>';
+ return `<section class="card noprint"><div class="filtros">${fPeriodo()}<label>Turno<select data-f="turno">${opts(A().turnos,F.turno,'Todos')}</select></label></div></section>
+ <section class="card"><div class="sh"><h2>Resumen ejecutivo HSE</h2><button data-act="imprimir" class="noprint">Imprimir o guardar PDF</button></div>
+  <div class="hero"><div><span class="lbl">Días sin accidentes con días perdidos</span><div class="n">${ult?num(difDias(ult,HOY)):'—'}</div><small class="mut">${ult?'Último evento: '+fmt(ult)+'.':'No hay eventos con días perdidos registrados.'} Se cuenta hasta hoy, sin depender del período elegido.</small></div>
+  <div class="res">${resumen(f,h,prev,altas)}</div></div></section>
+ <div class="tiles">
+  ${tl('Frecuencia de registrables',dec(h.trif),`${h.reg} ${h.reg===1?'registrable':'registrables'} en ${num(h.horas)} horas`,delta(h.trif,hp.trif,ant,{bueno:'baja'}),`Eventos con tratamiento médico o días perdidos por ${baseTxt()} trabajadas.`)}
+  ${tl('Frecuencia con días perdidos',dec(h.ltif),`${h.lti} ${h.lti===1?'evento':'eventos'} con días perdidos`,delta(h.ltif,hp.ltif,ant,{bueno:'baja'}),`Eventos con días perdidos por ${baseTxt()} trabajadas.`)}
+  ${tl('Días perdidos',num(h.dias),'en el período',delta(h.dias,hp.dias,ant,{bueno:'baja'}),'Suma de días perdidos por lesiones del período.')}
+  ${tl('Casi accidentes reportados',num(h.casi),h.lesiones?`${dec(h.casi/h.lesiones)} por cada lesión`:'sin lesiones en el período',delta(h.casi,hp.casi,ant),'Más reportes suele indicar mejor cultura preventiva, no más riesgo.')}
+  ${tl('Hallazgos de prioridad alta',altas.length,`de ${H.length} hallazgos abiertos`,'<span class="delta noprint"><button class="min" data-act="tab" data-tab="asistente">Ver detalle</button></span>','Problemas detectados automáticamente que conviene resolver primero.')}
+ </div>
+ <div class="dos">
+  ${graf('Eventos por mes','Últimos 12 meses hasta '+fmt(f.hasta)+'. Cada columna suma los eventos del mes.',sinEv||leyenda(sEv)+columnas(cats,sEv)+tablaDatos(['Mes'].concat(sEv.map(s=>s.n)),cats.map((c,i)=>[c].concat(sEv.map(s=>s.v[i])))))}
+  ${graf('Eventos por tipo','Período elegido. Lo esperable es tener muchos casi accidentes reportados y pocas lesiones.',sinEv||hbarras(fTipo)+tablaDatos(['Tipo','Eventos'],fTipo.map(x=>[x.n,x.v])))}
+  ${graf('Indicadores preventivos frente a la meta','Período elegido. La marca vertical es la meta de cada indicador; se ajusta en Ajustes.',hbarras(fPrev,{max:100,medidor:1})+tablaDatos(['Indicador','Valor','Meta','Detalle'],prev.map(p=>[p.n,verPct(p.v),p.meta+'%',p.sub])))}
+  ${graf('Tendencia mensual de cumplimiento','Últimos 12 meses hasta '+fmt(f.hasta)+'. Porcentaje de cada mes; el mes en curso cuenta solo hasta hoy.',leyenda(sTe,1)+lineas(cats,sTe,{suf:'%',tope:100})+tablaDatos(['Mes'].concat(sTe.map(s=>s.n)),cats.map((c,i)=>[c].concat(sTe.map(s=>s.v[i]==null?null:s.v[i]+'%')))))}
+  ${graf('Presupuesto por rubro','Ejecutado sobre presupuestado en los meses del período. La marca vertical es el 100%.',fRub.length?hbarras(fRub,{max:125,medidor:1})+tablaDatos(['Rubro','Ejecutado','Presupuestado','%'],fRub.map(x=>[x.n,num(x.e),num(x.p),x.val])):'<p class="mut">No hay presupuesto cargado para este período.</p>')}
+  ${graf('Hallazgos abiertos por área','Estado actual. Cantidad de problemas detectados por el asistente en cada área.',fAr.length?hbarras(fAr)+tablaDatos(['Área','Hallazgos','Prioridad alta'],fAr.map(x=>[x.n,x.v,x.a])):'<p class="mut">No hay hallazgos abiertos.</p>')}
+ </div>`;
+}
+function vTablero(){
+ const k=kpis(F),cb=cubos(F),porCubo=cb.map(c=>({c,k:kpis({...F,desde:c.ini<F.desde?F.desde:c.ini,hasta:c.fin>F.hasta?F.hasta:c.fin})}));
+ const turnos=A().turnos.map(t=>{const kt=kpis({...F,turno:t});return {t,a:kt.acts,d:kt.dotacion}}).filter(x=>!F.turno||x.t===F.turno);
+ return `<section class="card"><div class="filtros">
+  ${fPeriodo()}
+  <label>Turno<select data-f="turno">${opts(A().turnos,F.turno,'Todos')}</select></label>
+  <label>Rol<select data-f="rol">${opts(A().roles,F.rol,'Todos')}</select></label>
+  <label>Tendencia por<select data-f="grano">${opts([['semana','Semana'],['mes','Mes']],F.grano)}</select></label>
+  <label>Resumen individual (solo personal autorizado)<select data-f="persona">${opts(db.integrantes.map(p=>[p.id,p.codigo]),F.persona,'Todo el equipo')}</select></label>
+ </div></section>
+ <div class="tiles">
+  ${tile('actividades',num(k.acts),Object.entries(k.porTipo).map(([t,n])=>esc(t)+' '+n).join(' · '))}
+  ${tile('tareas',verPct(pct(k.tareasN,k.tareasD)),`${k.tareasN} de ${k.tareasD} en plazo`)}
+  ${tile('seguimiento',verPct(pct(k.segN,k.segD)),`${k.segN} de ${k.segD} documentados`)}
+  ${tile('capacitacion',verPct(pct(k.curN,k.curD)),`${k.curN} de ${k.curD} vigentes`,`${k.curPorVencer} vencen en 30 días`)}
+  ${tile('calidad',verPct(pct(k.calN,k.calD)),`${k.calN} de ${k.calD} completos`)}
+  ${tile('adherencia',verPct(pct(k.medN,k.medD)),`${num(k.medN)} de ${num(k.medD)} dosis`,'No depende de turno ni rol')}
+  ${tile('equipos',verPct(pct(k.eqN,k.eqD)),`${k.eqN} de ${k.eqD} operativos`,'Estado actual')}
+  ${tile('insumos',k.insBajo,`de ${k.insD} insumos`,'Estado actual')}
+  ${tile('presupuesto',verPct(pct(k.capN,k.capD)),`${num(k.capN)} de ${num(k.capD)}`)}
+ </div>
+ <div class="dos">
+  <section class="card"><h2>Actividades por ${F.grano}</h2><p class="mut">Cantidad registrada en cada período.</p>${columnas(porCubo.map(x=>x.c.l),[{n:'actividades',c:'var(--s1)',v:porCubo.map(x=>x.k.acts)}])}</section>
+  <section class="card"><h2>Cumplimiento de tareas por ${F.grano}</h2><p class="mut">Porcentaje de tareas completadas en plazo. Sin barra = sin tareas con plazo en ese período.</p>${columnas(porCubo.map(x=>x.c.l),[{n:'tareas en plazo',c:'var(--s1)',v:porCubo.map(x=>pct(x.k.tareasN,x.k.tareasD))}],{suf:'%',tope:100})}</section>
+ </div>
+ <section class="card"><h2>Carga por turno</h2><p class="mut">${def('carga').i}</p><div class="tw"><table><thead><tr><th>Turno</th><th>Actividades</th><th>Dotación activa</th><th>Actividades por persona</th></tr></thead><tbody>
+  ${turnos.map(x=>`<tr><td>${esc(x.t)}</td><td>${x.a}</td><td>${x.d}</td><td>${x.d?(x.a/x.d).toFixed(1):'—'}</td></tr>`).join('')}</tbody></table></div></section>`;
+}
+function rangoMed(){const a=M.ancla;if(M.grano==='dia')return [a,a];if(M.grano==='semana')return [lunes(a),addDias(lunes(a),6)];if(M.grano==='mes')return [iniMes(a),finMes(a)];return [a.slice(0,4)+'-01-01',a.slice(0,4)+'-12-31']}
+function vMedicacion(){
+ const [de,ha]=rangoMed(),st=medStats(de,ha),sum=k=>st.reduce((a,r)=>a+r[k],0),esp=sum('esp'),dadas=sum('adm')+sum('dem');
+ const cl=p=>p===null?'':p>=90?'ok':p>=80?'warn':'bad';
+ return `<section class="card"><div class="filtros">
+  <label>Vista<select data-m="grano">${opts([['dia','Diaria'],['semana','Semanal'],['mes','Mensual'],['anio','Anual']],M.grano)}</select></label>
+  <label>Fecha de referencia<input type="date" data-m="ancla" value="${M.ancla}"></label>
+  <span class="mut">Período: ${fmt(de)} al ${fmt(ha)}. Las dosis futuras no se cuentan como esperadas.</span></div></section>
+ <div class="tiles">
+  <div class="tile"><span>Adherencia</span><b class="${cl(pct(dadas,esp))}">${verPct(pct(Math.min(dadas,esp),esp))}</b><small>${num(dadas)} de ${num(esp)} dosis esperadas</small></div>
+  <div class="tile"><span>Demoradas</span><b>${sum('dem')}</b><small>administradas fuera de horario</small></div>
+  <div class="tile"><span>Omitidas o rechazadas</span><b>${sum('omi')+sum('rec')}</b><small>${sum('omi')} omitidas · ${sum('rec')} rechazadas</small></div>
+  <div class="tile"><span>Sin registro</span><b>${sum('sin')}</b><small>esperadas y no registradas</small></div>
+ </div>
+ <section class="card"><div class="sh"><h2>Auditoría por indicación</h2></div>
+  ${st.length?`<div class="tw"><table><thead><tr><th>Paciente · medicamento</th><th>Dosis/día</th><th>Esperadas</th><th>Administradas</th><th>Demoradas</th><th>Omitidas</th><th>Rechazadas</th><th>Sin registro</th><th>Adherencia</th><th></th></tr></thead><tbody>
+  ${st.map(r=>`<tr><td>${esc(etq('indicaciones',r.i.id))}${r.i.controlado?' <span class="tag media">controlado</span>':''}</td><td>${+r.i.dosisDia||'a demanda'}</td><td>${r.esp}</td><td>${r.adm}</td><td>${r.dem}</td><td>${r.omi}</td><td>${r.rec}</td><td>${r.sin}</td><td class="${cl(r.adh)}"><strong>${verPct(r.adh)}</strong></td><td class="acc"><button class="min" data-act="dosis" data-id="${esc(r.i.id)}">Registrar dosis</button></td></tr>`).join('')}</tbody></table></div>`:'<p class="mut">No hay indicaciones activas ni registros en este período.</p>'}
+ </section>
+ ${seccion('pacientes',null,'Identificar con un código interno. La correspondencia código–persona debe quedar fuera de esta herramienta.')}
+ ${seccion('indicaciones')}
+ ${seccion('administraciones',db.administraciones.filter(a=>a.fecha>=de&&a.fecha<=ha),'Registros del período seleccionado.')}`;
+}
+function listaHall(){
+ const t=q.trim().toLowerCase(),H=hallazgos(),l=H.filter(h=>(!sevF||h.sev===sevF)&&(!t||[h.area,h.titulo,h.detalle,h.sug].join(' ').toLowerCase().includes(t)));
+ return `<p class="mut">${l.length} de ${H.length} hallazgos.</p>`+(l.map(h=>`<div class="h ${h.sev}"><strong><span class="tag ${h.sev}">${h.sev}</span>${esc(h.area)} · ${esc(h.titulo)}</strong><p>${esc(h.detalle)}</p><p class="mut"><b>Qué revisar:</b> ${esc(h.sug)}</p></div>`).join('')||'<p>No hay hallazgos que coincidan.</p>');
+}
+function vAsistente(){
+ return `<section class="card"><div class="sh"><h2>Problemas detectados y qué revisar</h2></div>
+  <p class="mut">El asistente recorre todos los registros con reglas fijas y explicables. Señala cosas para revisar; no reemplaza el criterio profesional ni toma decisiones clínicas.</p>
+  <div class="filtros"><label>Buscar<input type="search" id="q" placeholder="ej. stock, alergia, PAC-003, vencido" value="${esc(q)}" size="34"></label>
+  <label>Prioridad<select id="sev">${opts([['alta','Alta'],['media','Media'],['baja','Baja']],sevF,'Todas')}</select></label></div>
+  <div id="hall">${listaHall()}</div></section>
+ <section class="card"><div class="sh"><h2>Consultar a una IA</h2><button class="pri" data-act="copiar">Copiar consulta</button></div>
+  <p class="mut">Esta consulta resume indicadores y tipos de hallazgo, sin códigos de pacientes ni de integrantes. Pégala en el asistente de IA que tu organización autorice para pedir prioridades, causas probables y acciones. Revísala antes de enviarla.</p>
+  <textarea class="pr" id="prompt" readonly>${esc(consultaIA())}</textarea></section>`;
+}
+function vGuia(){
+ return `<section class="card"><h2>Diccionario de indicadores</h2><div class="tw"><table><thead><tr><th>Indicador</th><th>Cómo se calcula</th><th>Límites de interpretación</th></tr></thead><tbody>
+  ${DIC.map(d=>`<tr><td><strong>${d.n}</strong></td><td class="wrap">${d.f}</td><td class="wrap">${d.i}</td></tr>`).join('')}</tbody></table></div>
+  <p class="mut">Semáforo de los indicadores con meta: "En meta" si el valor iguala o supera la meta, "Cerca de la meta" si está hasta 10 puntos por debajo, y "Bajo la meta" si la diferencia es mayor.</p></section>
+ <section class="card"><h2>Privacidad y uso justo</h2>
+  <p><strong>Dónde están los datos.</strong> Todo se guarda únicamente en el navegador de este dispositivo. No hay servidor ni cuentas: nada se envía a ningún lado salvo que exportes un respaldo o copies la consulta para IA.</p>
+  <p><strong>Sin datos identificables.</strong> Usa códigos para pacientes e integrantes. No cargues nombres, documentos, legajos ni diagnósticos. El listado que relaciona códigos con personas debe guardarse en el sistema oficial de tu organización.</p>
+  <p><strong>No es una historia clínica.</strong> El módulo de medicación es un apoyo de gestión y auditoría. No reemplaza el registro clínico legal ni la validación de un profesional habilitado, y no detecta interacciones ni contraindicaciones.</p>
+  <p><strong>Acceso.</strong> Esta versión no tiene usuarios ni contraseñas. El resumen individual queda protegido solo por quién tiene acceso al dispositivo; úsalo en equipos con sesión personal y bloqueo.</p>
+  <p><strong>Las tasas de incidentes no son un puntaje individual.</strong> Las frecuencias se calculan para el sitio y los eventos se registran sin identificar personas. Comparar individuos por tasa refleja diferencias de exposición y de cultura de reporte, no desempeño, y desalienta reportar.</p>
+  <p><strong>Derecho a corregir.</strong> Cualquier registro se puede editar. Si alguien del equipo señala un dato incorrecto, corrígelo antes de sacar conclusiones.</p>
+  <p><strong>Antes de usar datos reales</strong>, consulta con las áreas de legales, protección de datos y salud ocupacional de tu empresa y la normativa de tu país.</p></section>`;
+}
+function vAjustes(){
+ const a=A();return `<section class="card"><h2>Adaptar a tu equipo</h2><p class="mut">Separa cada opción con una coma. Los cambios se aplican a los formularios y filtros.</p>
+ <form id="faj"><label>Nombre del equipo u organización<br><input name="org" value="${esc(a.org)}" size="40"></label><p></p>
+ <label>Turnos<br><input name="turnos" value="${esc(a.turnos.join(', '))}" size="60"></label><p></p>
+ <label>Roles<br><input name="roles" value="${esc(a.roles.join(', '))}" size="60"></label><p></p>
+ <label>Tipos de actividad<br><input name="tipos" value="${esc(a.tipos.join(', '))}" size="60"></label><p></p>
+ <label>Base para las frecuencias de eventos<br><select name="base">${opts([['1000000','Por millón de horas trabajadas'],['200000','Por 200.000 horas trabajadas']],String(a.base))}</select></label><p></p>
+ <p class="lbl">Metas de los indicadores (%)</p><div class="filtros">${[['acciones','Acciones correctivas'],['tareas','Tareas en plazo'],['seguimiento','Seguimiento'],['calidad','Calidad del registro'],['capacitacion','Capacitación'],['equipos','Equipamiento'],['adherencia','Adherencia']].map(([k,t])=>`<label>${t}<input type="number" name="meta_${k}" min="0" max="100" value="${a.metas[k]}" style="width:110px"></label>`).join('')}</div><p></p>
+ <button class="pri">Guardar ajustes</button></form></section>`;
+}
+function render(){
+ $('#org').textContent=A().org;
+ $('#nav').innerHTML=TABS.map(([k,t])=>`<button data-act="tab" data-tab="${k}" class="${k===tab?'on':''}">${t}</button>`).join('');
+ const v={gerencia:vGerencia,incidentes:()=>seccion('incidentes',null,'Se registra el evento, nunca a la persona. Sin nombres ni datos que permitan identificar a alguien.')+seccion('horas',null,'Horas trabajadas por todo el personal del sitio en cada mes. Son el denominador de las frecuencias.'),tablero:vTablero,equipo:()=>seccion('integrantes',null,'Un código por persona. No hace falta el nombre completo.')+seccion('cursos'),
+  actividad:()=>seccion('actividades')+seccion('tareas'),recursos:()=>seccion('equipos')+seccion('insumos')+seccion('capital'),
+  medicacion:vMedicacion,asistente:vAsistente,guia:vGuia,ajustes:vAjustes}[tab]();
+ $('#vista').innerHTML=(db.esDemo?'<div class="aviso"><strong>Datos ficticios de demostración.</strong> Recorre las pestañas para ver cómo funciona y luego usa "Empezar en blanco" para cargar los de tu equipo.</div>':'')+v;
+}
+
+/* ============ Formularios y acciones ============ */
+function campo(c,v){
+ const req=c.req?' required':'',n=`name="${c.k}"`;
+ if(c.t==='check')return `<label class="chk"><input type="checkbox" ${n}${v?' checked':''}> ${esc(c.l)}</label>`;
+ let inp;
+ if(c.t==='select')inp=`<select ${n}${req}>${opts(c.o().includes(v)||!v?c.o():c.o().concat([v]),v||c.o()[0])}</select>`;
+ else if(c.t==='ref')inp=`<select ${n}${req}>${opts(db[c.col].map(r=>[r.id,etq(c.col,r.id)]),v,'— Elegir —')}</select>`;
+ else inp=`<input type="${{num:'number',date:'date',month:'month',time:'time'}[c.t]||'text'}" ${n} value="${esc(v)}"${c.t==='num'?' min="0" step="any"':''}${req}>`;
+ return `<label>${esc(c.l)}${inp}</label>`;
+}
+function abrirForm(col,id,pre){
+ const sc=S[col],base={};sc.campos.forEach(c=>{if(c.d!==undefined)base[c.k]=c.d});
+ const r=id?reg(col,id):Object.assign(base,pre||{}),dlg=$('#dlg');
+ dlg.innerHTML=`<form method="dialog"><h2>${id?'Editar':'Agregar'} ${sc.uno}</h2>${sc.campos.map(c=>campo(c,r[c.k])).join('')}<div class="acc2"><button value="no" formnovalidate>Cancelar</button><button class="pri" value="si">Guardar</button></div></form>`;
+ dlg.querySelector('form').onsubmit=e=>{
+  if(!e.submitter||e.submitter.value!=='si')return;
+  const fd=e.target.elements,nv=id?r:{id:uid()};
+  sc.campos.forEach(c=>{const el=fd[c.k];nv[c.k]=c.t==='check'?el.checked:c.t==='num'?(el.value===''?0:+el.value):el.value.trim()});
+  if(!id)db[col].push(nv);delete db.esDemo;guardar();render();
+ };
+ dlg.showModal();
+}
+function bajar(nombre,texto,tipo){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([texto],{type:tipo}));a.download=nombre;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+function csv(col){
+ const sc=S[col],q2=v=>{let s=String(v??'');if(/^[=+\-@]/.test(s))s="'"+s;return '"'+s.replace(/"/g,'""')+'"'};
+ const txt=[sc.campos.map(c=>q2(c.c||c.l)).join(',')].concat(db[col].map(r=>sc.campos.map(c=>q2(c.t==='ref'?etq(c.col,r[c.k]):c.t==='check'?(r[c.k]?'Sí':'No'):r[c.k])).join(','))).join('\r\n');
+ bajar(col+'.csv','﻿'+txt,'text/csv');
+}
+document.addEventListener('click',e=>{
+ const b=e.target.closest('[data-act]');if(!b)return;const {act,col,id}=b.dataset;
+ if(act==='tab'){tab=b.dataset.tab;render();window.scrollTo(0,0)}
+ else if(act==='nuevo')abrirForm(col);
+ else if(act==='editar')abrirForm(col,id);
+ else if(act==='borrar'){if(confirm('¿Borrar este registro? No se puede deshacer.')){db[col]=db[col].filter(x=>x.id!==id);guardar();render()}}
+ else if(act==='csv')csv(col);
+ else if(act==='imprimir')window.print();
+ else if(act==='dosis')abrirForm('administraciones',null,{indicacion:id,fecha:M.grano==='dia'?M.ancla:HOY,hora:new Date().toTimeString().slice(0,5),estado:'Administrada'});
+ else if(act==='exportar')bajar('respaldo-tablero-'+HOY+'.json',JSON.stringify(db,null,1),'application/json');
+ else if(act==='importar')$('#arch').click();
+ else if(act==='demo'){if(confirm('Esto reemplaza todos los datos actuales por datos ficticios. ¿Continuar?')){db=demo();guardar();render()}}
+ else if(act==='vaciar'){if(confirm('Esto borra todos los datos de este navegador y deja la herramienta en blanco. Exporta un respaldo antes si los necesitas. ¿Continuar?')){const aj=db.ajustes;db=vacio();if(!db.esDemo)db.ajustes=aj;db.ajustes.org=aj.org.includes('demo')?'Mi equipo':aj.org;guardar();render()}}
+ else if(act==='copiar'){const t=$('#prompt');t.select();(navigator.clipboard?navigator.clipboard.writeText(t.value):Promise.reject()).catch(()=>document.execCommand('copy'));b.textContent='Copiada';setTimeout(()=>b.textContent='Copiar consulta',1500)}
+});
+document.addEventListener('change',e=>{
+ const t=e.target;
+ if(t.dataset.preset!==undefined){if(t.value){F.hasta=HOY;F.desde=addDias(HOY,-(t.value-1));render()}}
+ else if(t.dataset.f){if((t.dataset.f==='desde'||t.dataset.f==='hasta')&&!t.value)return;F[t.dataset.f]=t.value;if(F.desde>F.hasta)F.hasta=F.desde;render()}
+ else if(t.dataset.m){if(t.dataset.m==='ancla'&&!t.value)return;M[t.dataset.m]=t.value;render()}
+ else if(t.id==='sev'){sevF=t.value;$('#hall').innerHTML=listaHall()}
+ else if(t.id==='arch'&&t.files[0]){const fr=new FileReader();fr.onload=()=>{let r=null;try{r=normal(JSON.parse(fr.result))}catch(x){}
+  if(!r)alert('El archivo no es un respaldo válido de esta herramienta.');else if(confirm('Importar reemplaza todos los datos actuales. ¿Continuar?')){db=r;guardar();render()}t.value=''};fr.readAsText(t.files[0])}
+});
+document.addEventListener('input',e=>{if(e.target.id==='q'){q=e.target.value;$('#hall').innerHTML=listaHall()}});
+document.addEventListener('submit',e=>{
+ if(e.target.id!=='faj')return;e.preventDefault();const fd=e.target.elements,lista=v=>[...new Set(v.split(',').map(x=>x.trim()).filter(Boolean))];
+ const a=A();a.org=fd.org.value.trim()||'Mi equipo';['turnos','roles','tipos'].forEach(k=>{const l=lista(fd[k].value);if(l.length)a[k]=l});a.base=fd.base.value==='200000'?200000:1000000;Object.keys(METAS).forEach(k=>{const v=+fd['meta_'+k].value;if(fd['meta_'+k].value!==''&&isFinite(v))a.metas[k]=Math.max(0,Math.min(100,v))});guardar();render();
+});
+/* Tooltip único: el texto se inserta con textContent */
+const tip=$('#tip');
+function verTip(el,x,y){
+ const [t,...ls]=el.dataset.tip.split('|');tip.textContent='';
+ const d=document.createElement('div');d.className='tt';d.textContent=t;tip.append(d);
+ ls.forEach(l=>{const [c,v,n]=l.split('~'),r=document.createElement('div');r.className='tr';
+  if(c){const i=document.createElement('i');i.style.background=c;r.append(i)}
+  const b=document.createElement('b');b.textContent=v;r.append(b);if(n)r.append(document.createTextNode(n));tip.append(r)});
+ tip.style.display='block';const w=tip.offsetWidth,hh=tip.offsetHeight;
+ tip.style.left=Math.max(8,Math.min(x+14,innerWidth-w-8))+'px';tip.style.top=(y-hh-12<8?y+18:y-hh-12)+'px';
+}
+const conTip=e=>e.target.closest?e.target.closest('[data-tip]'):null;
+document.addEventListener('pointermove',e=>{const el=conTip(e);if(el)verTip(el,e.clientX,e.clientY);else tip.style.display='none'});
+document.addEventListener('focusin',e=>{const el=conTip(e);if(el){const r=el.getBoundingClientRect();verTip(el,r.left+r.width/2,r.top)}});
+document.addEventListener('focusout',()=>tip.style.display='none');
+let cw=CW();addEventListener('resize',()=>{if(CW()!==cw){cw=CW();render()}});
+render();
+</script>
+</body>
+</html>
